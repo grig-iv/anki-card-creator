@@ -59,6 +59,7 @@ func TestParseUrl_Mind(t *testing.T) {
 	wordPage, _ := page.(wordPage)
 
 	sense1, _ := wordPage.entries[0].senses[0].(sense)
+	assert.Equal(t, "countable, uncountable", sense1.grammar)
 	assert.Equal(t, "in somebody’s mind", sense1.examples[3].colloquial)
 
 	sense2, _ := wordPage.entries[0].senses[13].(sense)

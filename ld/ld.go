@@ -46,6 +46,7 @@ type ldSense interface{}
 
 type sense struct {
 	signpost   string
+	grammar    string
 	definition string
 	synonyms   string
 	examples   []example
@@ -194,6 +195,11 @@ func parseSense(node *html.Node) sense {
 	signpost := htmlquery.FindOne(node, `//span[@class="SIGNPOST"]`)
 	if signpost != nil {
 		sense.signpost = innerTextTrim(signpost)
+	}
+
+	grammar := htmlquery.FindOne(node, `//span[@class="GRAM"]`)
+	if grammar != nil {
+		sense.grammar = strings.Trim(htmlquery.InnerText(grammar), "[ ]")
 	}
 
 	definition := htmlquery.FindOne(node, `//span[@class="DEF"]`)
