@@ -225,5 +225,9 @@ func parseExample(node *html.Node) example {
 		example.audioUrl = src[:strings.Index(src, "?")]
 	}
 
+	if hasClass(node.Parent.FirstChild, "PROPFORM") {
+		example.colloquial = innerTextTrim(node.Parent.FirstChild)
+	}
+
 	return example
 }

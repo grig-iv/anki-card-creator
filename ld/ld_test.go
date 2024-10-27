@@ -57,8 +57,11 @@ func TestParseUrl_Mind(t *testing.T) {
 	}
 
 	wordPage, _ := page.(wordPage)
-	sense, _ := wordPage.entries[0].senses[13].(sense)
 
-	assert.Equal(t, "intelligent person", sense.signpost)
-	assert.Equal(t, "brain", sense.synonyms)
+	sense1, _ := wordPage.entries[0].senses[0].(sense)
+	assert.Equal(t, "in somebody’s mind", sense1.examples[3].colloquial)
+
+	sense2, _ := wordPage.entries[0].senses[13].(sense)
+	assert.Equal(t, "intelligent person", sense2.signpost)
+	assert.Equal(t, "brain", sense2.synonyms)
 }
