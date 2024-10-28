@@ -184,10 +184,24 @@ func parseEntry(node *html.Node) dictEntry {
 
 	entry.senses = make([]ldSense, 0)
 	for _, node := range htmlquery.Find(node, `//span[@class="Sense"]`) {
-		entry.senses = append(entry.senses, parseSense(node))
+		crossRefNode := htmlquery.FindOne(node, `//a[@class="crossRef"]`)
+		if crossRefNode != nil {
+			entry.senses = append(entry.senses, parseCrossRef(crossRefNode))
+		} else {
+			entry.senses = append(entry.senses, parseSense(node))
+		}
 	}
 
 	return entry
+}
+
+func parseCrossRef(node *html.Node) crossRefSense {
+	crossRef := crossRefSense{}
+
+	crossRef.text = innerTextTrim(node)
+	crossRef.ref = innerTextTrim(htmlquery.FindOne(node, "//@href"))
+
+	return crossRef
 }
 
 func parseSense(node *html.Node) sense {

@@ -62,6 +62,10 @@ func TestParseUrl_Mental(t *testing.T) {
 	assert.Equal(t, "only before noun", sense1.grammar)
 	assert.Equal(t, "mental picture/image", sense1.examples[2].colloquial)
 
-	sense2, _ := wordPage.entries[0].senses[5].(sense)
-	assert.Equal(t, "British English", sense2.geo)
+	sense2, _ := wordPage.entries[0].senses[2].(crossRefSense)
+	assert.Equal(t, "make a mental note", sense2.text)
+	assert.Equal(t, "/dictionary/make-a-mental-note", sense2.ref)
+
+	sense3, _ := wordPage.entries[0].senses[5].(sense)
+	assert.Equal(t, "British English", sense3.geo)
 }
