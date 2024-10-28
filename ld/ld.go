@@ -47,6 +47,7 @@ type ldSense interface{}
 type sense struct {
 	signpost   string
 	grammar    string
+	geo        string
 	definition string
 	synonyms   string
 	examples   []example
@@ -202,6 +203,11 @@ func parseSense(node *html.Node) sense {
 		sense.grammar = strings.Trim(htmlquery.InnerText(grammar), "[ ]")
 	}
 
+	geo := htmlquery.FindOne(node, `//span[@class="GEO"]`)
+	if geo != nil {
+		sense.geo = innerTextTrim(geo)
+	}
+
 	definition := htmlquery.FindOne(node, `//span[@class="DEF"]`)
 	if definition != nil {
 		sense.definition = innerTextTrim(definition)
@@ -231,7 +237,7 @@ func parseExample(node *html.Node) example {
 		example.audioUrl = src[:strings.Index(src, "?")]
 	}
 
-	if hasClass(node.Parent.FirstChild, "PROPFORM") {
+	if hasClass(node.Parent, "ColloExa") {
 		example.colloquial = innerTextTrim(node.Parent.FirstChild)
 	}
 
