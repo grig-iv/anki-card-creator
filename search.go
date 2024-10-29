@@ -7,6 +7,7 @@ import (
 
 type searchScreen struct {
 	searchBox textinput.Model
+	suggestins []string
 }
 
 func newSearchScreen() searchScreen {
@@ -26,6 +27,16 @@ func (s searchScreen) Init() tea.Cmd {
 
 func (s searchScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEnter:
+			return s, tea.Quit
+		case tea.KeyEsc:
+			return s, tea.Quit
+		}
+	}
 
 	s.searchBox, cmd = s.searchBox.Update(msg)
 
