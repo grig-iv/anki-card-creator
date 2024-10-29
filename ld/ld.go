@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-type ldPage interface{}
+type Page interface{}
 
 var (
 	client *http.Client
@@ -42,7 +42,7 @@ func loadPage(url string) (*http.Response, error) {
 	return client.Do(req)
 }
 
-func ParseUrl(url string) (ldPage, error) {
+func ParseUrl(url string) (Page, error) {
 	page, err := loadPage(url)
 	if err != nil {
 		return nil, err
@@ -56,11 +56,11 @@ func ParseUrl(url string) (ldPage, error) {
 	}
 
 	if htmlquery.FindOne(doc, `//h1[@class="pagetitle"]`) != nil {
-		return ldPage(parseWordPage(doc)), nil
+		return Page(parseWordPage(doc)), nil
 	}
 
 	if htmlquery.FindOne(doc, `//h1[@class="search_title"]`) != nil {
-		return ldPage(parseSearchPage(doc)), nil
+		return Page(parseSearchPage(doc)), nil
 	}
 
 	return nil, errors.New("Unknown page: " + url)

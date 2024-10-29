@@ -9,7 +9,7 @@ import (
 func TestSearch(t *testing.T) {
 	page, _ := Search("nonosensesense")
 
-	searchPage, _ := page.(searchPage)
+	searchPage, _ := page.(SearchPage)
 
 	expected := []string{
 		"consensuses",
@@ -24,5 +24,5 @@ func TestSearch(t *testing.T) {
 		"denseness",
 	}
 
-	assert.Equal(t, expected, searchPage.results)
+	assert.Equal(t, expected, searchPage.Results)
 }

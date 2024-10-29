@@ -7,110 +7,110 @@ import (
 	"golang.org/x/net/html"
 )
 
-type wordPage struct {
-	title   string
-	entries []dictEntry
+type WordPage struct {
+	Title   string
+	Entries []DictEntry
 }
 
-type dictEntry struct {
-	hyphenation   string
-	pronunciation string
-	partOfSpeach  string
-	grammar       string
+type DictEntry struct {
+	Hyphenation   string
+	Pronunciation string
+	PartOfSpeach  string
+	Grammar       string
 
-	frequency frequency
+	Frequency Frequency
 
-	britAudioUrl     string
-	americanAudioUrl string
+	BritAudioUrl     string
+	AmericanAudioUrl string
 
-	senses []ldSense
+	Senses []LdSense
 }
 
-type frequency uint8
+type Frequency uint8
 
 const (
-	none frequency = iota
-	low
-	mid
-	high
+	None Frequency = iota
+	Low
+	Mid
+	High
 )
 
-type ldSense interface{}
+type LdSense interface{}
 
-type sense struct {
-	signpost   string
-	grammar    string
-	geo        string
-	definition string
-	synonyms   string
-	examples   []example
+type Sense struct {
+	Signpost   string
+	Grammar    string
+	Geo        string
+	Definition string
+	Synonyms   string
+	Examples   []Example
 }
 
-type example struct {
-	text       string
-	audioUrl   string
-	colloquial string
+type Example struct {
+	Text       string
+	AudioUrl   string
+	Colloquial string
 }
 
-type crossRefSense struct {
-	ref  string
-	text string
+type CrossRefSense struct {
+	Ref  string
+	Text string
 }
 
-func parseWordPage(doc *html.Node) wordPage {
-	page := wordPage{}
+func parseWordPage(doc *html.Node) WordPage {
+	page := WordPage{}
 
 	titleNode := htmlquery.FindOne(doc, `//h1[@class="pagetitle"]`)
 	if titleNode != nil {
-		page.title = innerTextTrim(titleNode)
+		page.Title = innerTextTrim(titleNode)
 	}
 
-	page.entries = make([]dictEntry, 0)
+	page.Entries = make([]DictEntry, 0)
 	for _, node := range htmlquery.Find(doc, `//span[@class="dictentry"]`) {
 		intro := htmlquery.FindOne(node, `//span[@class="dictionary_intro span"]`)
 		if intro != nil && innerTextTrim(intro) == "From Longman Business Dictionary" {
 			break
 		}
 
-		page.entries = append(page.entries, parseEntry(node))
+		page.Entries = append(page.Entries, parseEntry(node))
 	}
 
 	return page
 }
 
-func parseEntry(node *html.Node) dictEntry {
-	entry := dictEntry{}
+func parseEntry(node *html.Node) DictEntry {
+	entry := DictEntry{}
 
 	hyphenation := htmlquery.FindOne(node, `//span[@class="HYPHENATION"]`)
 	if hyphenation != nil {
-		entry.hyphenation = innerTextTrim(hyphenation)
+		entry.Hyphenation = innerTextTrim(hyphenation)
 	}
 
 	pronunciation := htmlquery.FindOne(node, `//span[@class="PronCodes"]`)
 	if pronunciation != nil {
-		entry.pronunciation = innerTextTrim(pronunciation)
+		entry.Pronunciation = innerTextTrim(pronunciation)
 	}
 
 	partOfSpeach := htmlquery.FindOne(node, `//span[@class="POS"]`)
 	if partOfSpeach != nil {
-		entry.partOfSpeach = innerTextTrim(partOfSpeach)
+		entry.PartOfSpeach = innerTextTrim(partOfSpeach)
 	}
 
 	frequency := htmlquery.FindOne(node, `//span[@class="tooltip LEVEL"]`)
 	if frequency != nil {
 		switch innerTextTrim(frequency) {
 		case "●○○":
-			entry.frequency = low
+			entry.Frequency = Low
 		case "●●○":
-			entry.frequency = mid
+			entry.Frequency = Mid
 		case "●●●":
-			entry.frequency = high
+			entry.Frequency = High
 		}
 	}
 
 	grammar := htmlquery.FindOne(node, `//span[@class="GRAM"]`)
 	if grammar != nil {
-		entry.grammar = strings.Trim(htmlquery.InnerText(grammar), "[ ]")
+		entry.Grammar = strings.Trim(htmlquery.InnerText(grammar), "[ ]")
 	}
 
 	for _, node := range htmlquery.Find(node, `//span[@data-src-mp3]`) {
@@ -119,87 +119,87 @@ func parseEntry(node *html.Node) dictEntry {
 		src = src[:strings.Index(src, "?")]
 
 		if hasClass(node, "brefile") {
-			entry.britAudioUrl = src
+			entry.BritAudioUrl = src
 			continue
 		}
 
 		if hasClass(node, "amefile") {
-			entry.americanAudioUrl = src
+			entry.AmericanAudioUrl = src
 			continue
 		}
 	}
 
-	entry.senses = make([]ldSense, 0)
+	entry.Senses = make([]LdSense, 0)
 	for _, node := range htmlquery.Find(node, `//span[@class="Sense"]`) {
 		crossRefNode := htmlquery.FindOne(node, `//a[@class="crossRef"]`)
 		if crossRefNode != nil {
-			entry.senses = append(entry.senses, parseCrossRef(crossRefNode))
+			entry.Senses = append(entry.Senses, parseCrossRef(crossRefNode))
 		} else {
-			entry.senses = append(entry.senses, parseSense(node))
+			entry.Senses = append(entry.Senses, parseSense(node))
 		}
 	}
 
 	return entry
 }
 
-func parseCrossRef(node *html.Node) crossRefSense {
-	crossRef := crossRefSense{}
+func parseCrossRef(node *html.Node) CrossRefSense {
+	crossRef := CrossRefSense{}
 
-	crossRef.text = innerTextTrim(node)
-	crossRef.ref = innerTextTrim(htmlquery.FindOne(node, "//@href"))
+	crossRef.Text = innerTextTrim(node)
+	crossRef.Ref = innerTextTrim(htmlquery.FindOne(node, "//@href"))
 
 	return crossRef
 }
 
-func parseSense(node *html.Node) sense {
-	sense := sense{}
+func parseSense(node *html.Node) Sense {
+	sense := Sense{}
 
 	signpost := htmlquery.FindOne(node, `//span[@class="SIGNPOST"]`)
 	if signpost != nil {
-		sense.signpost = innerTextTrim(signpost)
+		sense.Signpost = innerTextTrim(signpost)
 	}
 
 	grammar := htmlquery.FindOne(node, `//span[@class="GRAM"]`)
 	if grammar != nil {
-		sense.grammar = strings.Trim(htmlquery.InnerText(grammar), "[ ]")
+		sense.Grammar = strings.Trim(htmlquery.InnerText(grammar), "[ ]")
 	}
 
 	geo := htmlquery.FindOne(node, `//span[@class="GEO"]`)
 	if geo != nil {
-		sense.geo = innerTextTrim(geo)
+		sense.Geo = innerTextTrim(geo)
 	}
 
 	definition := htmlquery.FindOne(node, `//span[@class="DEF"]`)
 	if definition != nil {
-		sense.definition = innerTextTrim(definition)
+		sense.Definition = innerTextTrim(definition)
 	}
 
 	synonyms := htmlquery.FindOne(node, `//span[@class="SYN"]`)
 	if synonyms != nil {
-		sense.synonyms = innerTextTrim(synonyms)[4:]
+		sense.Synonyms = innerTextTrim(synonyms)[4:]
 	}
 
-	sense.examples = make([]example, 0)
+	sense.Examples = make([]Example, 0)
 	for _, node := range htmlquery.Find(node, `//span[@class="EXAMPLE"]`) {
-		sense.examples = append(sense.examples, parseExample(node))
+		sense.Examples = append(sense.Examples, parseExample(node))
 	}
 
 	return sense
 }
 
-func parseExample(node *html.Node) example {
-	example := example{}
+func parseExample(node *html.Node) Example {
+	example := Example{}
 
-	example.text = innerTextTrim(node)
+	example.Text = innerTextTrim(node)
 
 	scrAttr := htmlquery.FindOne(node, `//span/@data-src-mp3`)
 	if scrAttr != nil {
 		src := innerTextTrim(scrAttr)
-		example.audioUrl = src[:strings.Index(src, "?")]
+		example.AudioUrl = src[:strings.Index(src, "?")]
 	}
 
 	if hasClass(node.Parent, "ColloExa") {
-		example.colloquial = innerTextTrim(node.Parent.FirstChild)
+		example.Colloquial = innerTextTrim(node.Parent.FirstChild)
 	}
 
 	return example

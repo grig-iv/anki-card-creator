@@ -7,26 +7,26 @@ import (
 	"golang.org/x/net/html"
 )
 
-type searchPage struct {
-	results []string
+type SearchPage struct {
+	Results []string
 }
 
 const (
 	searchUrlFormat = "https://www.ldoceonline.com/search/english/direct/?q=%s"
 )
 
-func Search(text string) (ldPage, error) {
+func Search(text string) (Page, error) {
 	return ParseUrl(fmt.Sprintf(searchUrlFormat, text))
 }
 
-func parseSearchPage(doc *html.Node) searchPage {
-	page := searchPage{}
+func parseSearchPage(doc *html.Node) SearchPage {
+	page := SearchPage{}
 
 	suggestions := htmlquery.Find(doc, `//ul[@class="didyoumean"]/li`)
 
-	page.results = make([]string, 0, len(suggestions))
+	page.Results = make([]string, 0, len(suggestions))
 	for _, s := range suggestions {
-		page.results = append(page.results, innerTextTrim(s))
+		page.Results = append(page.Results, innerTextTrim(s))
 	}
 
 	return page
