@@ -9,19 +9,27 @@ type wordScreen struct {
 	page ld.WordPage
 }
 
-func newWordScreen() wordScreen {
-	screen := wordScreen{}
-	return screen
+func newWordScreen(page ld.WordPage) wordScreen {
+	return wordScreen{page}
 }
 
 func (w wordScreen) Init() tea.Cmd {
 	return nil
 }
 
-func (w wordScreen) Update(cmd tea.Msg) (tea.Model, tea.Cmd) {
+func (w wordScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case pageMsg:
+		switch page := msg.(type) {
+		case ld.WordPage:
+			w.page = page
+			return w, nil
+		}
+	}
+
 	return w, nil
 }
 
 func (w wordScreen) View() string {
-	return ""
+	return w.page.Title
 }

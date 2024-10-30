@@ -52,10 +52,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case pageMsg:
-		switch msg.(type) {
+		switch page := msg.(type) {
 		case ld.WordPage:
 			if _, ok := m.screen.(wordScreen); !ok {
-				m.screen = newSearchScreen()
+				m.screen = newWordScreen(page)
 				return m, m.screen.Init()
 			}
 		case ld.SearchPage:

@@ -119,7 +119,11 @@ func (s searchScreen) updateSuggestions(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			return s, nil
+			index := s.suggestionList.Index()
+			items := s.suggestionList.Items()
+			selected, _ := items[index].(suggestionItem)
+			s.state = loading
+			return s, search(string(selected))
 		case tea.KeyEsc:
 			s.state = typing
 			return s, nil
@@ -132,7 +136,6 @@ func (s searchScreen) updateSuggestions(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (s searchScreen) updateLoading(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Println(msg)
 	switch msg := msg.(type) {
 	case pageMsg:
 		switch page := msg.(type) {
