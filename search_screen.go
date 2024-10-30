@@ -34,8 +34,8 @@ const (
 )
 
 var (
-	titleStyle        = lipgloss.NewStyle().PaddingLeft(0)
-	selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
+	suggestionTitleStyle = lipgloss.NewStyle().PaddingLeft(0)
+	selectedItemStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("170"))
 )
 
 func (i suggestionItem) FilterValue() string { return "" }
@@ -150,7 +150,7 @@ func (s searchScreen) updateLoading(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s.suggestionList.SetShowStatusBar(false)
 			s.suggestionList.SetFilteringEnabled(false)
 			s.suggestionList.SetShowHelp(false)
-			s.suggestionList.Styles.Title = titleStyle
+			s.suggestionList.Styles.Title = suggestionTitleStyle
 
 			s.state = suggestion
 
