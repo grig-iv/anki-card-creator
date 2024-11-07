@@ -14,7 +14,7 @@ import (
 )
 
 type searchScreen struct {
-	state          searcScreenState
+	state          searchScreenState
 	searchBox      textinput.Model
 	suggestionList list.Model
 }
@@ -25,10 +25,10 @@ type suggestionItem string
 
 type suggestionItemDelegate struct{}
 
-type searcScreenState uint8
+type searchScreenState uint8
 
 const (
-	typing searcScreenState = iota
+	typing searchScreenState = iota
 	loading
 	suggestion
 )
