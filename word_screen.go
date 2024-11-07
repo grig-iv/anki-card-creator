@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,13 +16,15 @@ type wordScreen struct {
 }
 
 var (
-	titleStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
-	hyphenationStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
-	pronunciationStyle = lipgloss.NewStyle().Italic(true)
-	partOfSpeachStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
-	grammarStyle       = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
-	crossRefStyle      = lipgloss.NewStyle().Bold(true)
-	colloquialStyle    = lipgloss.NewStyle().Bold(true)
+	titleStyle           = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
+	hyphenationStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("1")).Bold(true)
+	pronunciationStyle   = lipgloss.NewStyle().Italic(true)
+	partOfSpeachStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
+	grammarStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
+	crossRefStyle        = lipgloss.NewStyle().Bold(true)
+	colloquialStyle      = lipgloss.NewStyle().Bold(true)
+	senseDefinitionStyle = lipgloss.NewStyle().Bold(true)
+	exampleTextStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("7")).Italic(true)
 )
 
 func newWordScreen(page ld.WordPage) wordScreen {
@@ -48,16 +51,15 @@ func (w wordScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (w wordScreen) View() string {
 	builder := &strings.Builder{}
 
-	builder.WriteString("\n")
-
 	for _, e := range w.page.Entries {
-		renderEtrie(builder, e)
+		builder.WriteString("\n")
+		w.renderEtrie(builder, e)
 	}
 
 	return builder.String()
 }
 
-func renderEtrie(builder *strings.Builder, entry ld.DictEntry) {
+func (w wordScreen) renderEtrie(builder *strings.Builder, entry ld.DictEntry) {
 	if entry.Hyphenation != "" {
 		builder.WriteString(hyphenationStyle.Render(entry.Hyphenation))
 		builder.WriteString(" ")
@@ -74,8 +76,11 @@ func renderEtrie(builder *strings.Builder, entry ld.DictEntry) {
 
 	builder.WriteString("\n")
 
-	for _, s := range entry.Senses {
+	for i, s := range entry.Senses {
 		builder.WriteString("  ")
+		if len(entry.Senses) > 1 {
+			builder.WriteString(fmt.Sprintf("%d. ", i+1))
+		}
 		switch s := s.(type) {
 		case ld.Sense:
 			renderSense(builder, s)
@@ -102,11 +107,11 @@ func renderSense(builder *strings.Builder, sense ld.Sense) {
 		if e.Colloquial != "" && e.Colloquial != lastColloquial {
 			builder.WriteString(colloquialStyle.Render(e.Colloquial))
 			lastColloquial = e.Colloquial
-			builder.WriteString("\n")
+			builder.WriteString("\n    ")
 		}
 
 		builder.WriteString("- \"")
-		builder.WriteString(e.Text)
+		builder.WriteString(exampleTextStyle.Render(e.Text))
 		builder.WriteString("\"\n")
 	}
 }
