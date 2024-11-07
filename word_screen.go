@@ -11,12 +11,22 @@ import (
 )
 
 type wordScreen struct {
-	page            ld.WordPage
-	selectedEntry   int
-	selectedSense   int
-	selectedExample int
-	windowHeigth    int
+	page  ld.WordPage
+	state wordScreenState
+
+	currEntry   int
+	currSense   int
+	currExample int
+
+	windowHeigth int
 }
+
+type wordScreenState uint8
+
+const (
+	selectingSense wordScreenState = iota
+	selectingExample
+)
 
 var (
 	titleStyle           = lipgloss.NewStyle().Foreground(lipgloss.Color("4")).Bold(true)
@@ -35,12 +45,14 @@ func newWordScreen(page ld.WordPage) wordScreen {
 	screen.page = page
 
 	if len(page.Entries) == 0 {
-		screen.selectedEntry = -1
+		screen.currEntry = -1
 	}
 
 	if len(page.Entries[0].Senses) == 0 {
-		screen.selectedSense = -1
+		screen.currSense = -1
 	}
+
+	screen.currExample = -1
 
 	return screen
 }
@@ -57,10 +69,27 @@ func (w wordScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyDown:
-			w.selectNext()
+			switch w.state {
+			case selectingExample:
+				w.nextExample()
+			case selectingSense:
+				w.nextSense()
+			}
 			return w, nil
 		case tea.KeyUp:
-			w.selectPrev()
+			switch w.state {
+			case selectingExample:
+				w.prevExample()
+			case selectingSense:
+				w.prevSense()
+			}
+			return w, nil
+		case tea.KeyEnter:
+			if w.state == selectingSense {
+				w.state = selectingExample
+				w.currExample = -1
+				w.nextExample()
+			}
 			return w, nil
 		}
 	case pageMsg:
@@ -74,64 +103,150 @@ func (w wordScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return w, nil
 }
 
-func (w *wordScreen) selectNext() {
-	currEntry := w.page.Entries[w.selectedEntry]
+func (w *wordScreen) nextSense() {
+	currEntry := w.page.Entries[w.currEntry]
 
-	w.selectedSense += 1
-	if w.selectedSense >= len(currEntry.Senses) {
-		w.selectedEntry += 1
-		if w.selectedEntry >= len(w.page.Entries) {
-			w.selectedEntry = 0
+	w.currSense += 1
+	if w.currSense >= len(currEntry.Senses) {
+		w.currEntry += 1
+		if w.currEntry >= len(w.page.Entries) {
+			w.currEntry = 0
 		}
 
-		currEntry := w.page.Entries[w.selectedEntry]
+		currEntry := w.page.Entries[w.currEntry]
 		if len(currEntry.Senses) != 0 {
-			w.selectedSense = 0
+			w.currSense = 0
 		}
 	}
 }
 
-func (w *wordScreen) selectPrev() {
-	w.selectedSense -= 1
-	if w.selectedSense < 0 {
-		w.selectedEntry -= 1
-		if w.selectedEntry < 0 {
-			w.selectedEntry = len(w.page.Entries) - 1
+func (w *wordScreen) prevSense() {
+	w.currSense -= 1
+	if w.currSense < 0 {
+		w.currEntry -= 1
+		if w.currEntry < 0 {
+			w.currEntry = len(w.page.Entries) - 1
 		}
 
-		currEntry := w.page.Entries[w.selectedEntry]
+		currEntry := w.page.Entries[w.currEntry]
 		if len(currEntry.Senses) != 0 {
-			w.selectedSense = len(currEntry.Senses) - 1
+			w.currSense = len(currEntry.Senses) - 1
 		}
 	}
 }
 
-func (w *wordScreen) isSeleceted(sense ld.LdSense) bool {
-	if w.selectedEntry < 0 || w.selectedEntry >= len(w.page.Entries) {
+func (w *wordScreen) nextExample() {
+	currLdSense, _ := w.getCurrSense()
+	currSense, ok := currLdSense.(ld.Sense)
+	if !ok {
+		return
+	}
+
+	if len(currSense.Examples) == 0 {
+		return
+	}
+
+	w.currExample += 1
+	if w.currExample >= len(currSense.Examples) {
+		w.currExample = 0
+	}
+}
+
+func (w *wordScreen) prevExample() {
+	currLdSense, _ := w.getCurrSense()
+	currSense, ok := currLdSense.(ld.Sense)
+	if !ok {
+		return
+	}
+
+	if len(currSense.Examples) == 0 {
+		return
+	}
+
+	w.currExample -= 1
+	if w.currExample < 0 {
+		w.currExample = len(currSense.Examples) - 1
+	}
+}
+
+func (w *wordScreen) isSelecetedSense(sense ld.LdSense) bool {
+	currSense, ok := w.getCurrSense()
+	if !ok {
 		return false
 	}
 
-	selectedEntry := w.page.Entries[w.selectedEntry]
-	if w.selectedSense < 0 || w.selectedSense >= len(selectedEntry.Senses) {
+	return reflect.DeepEqual(currSense, sense)
+}
+
+func (w *wordScreen) isSelecetedExample(sense ld.Sense, example ld.Example) bool {
+	currSense, ok := w.getCurrSense()
+	if !ok || !reflect.DeepEqual(currSense, sense) {
 		return false
 	}
 
-	selectedSense := selectedEntry.Senses[w.selectedSense]
-	return reflect.DeepEqual(selectedSense, sense)
+	if w.currExample == -1 {
+		return false
+	}
+
+	currExample := sense.Examples[w.currExample]
+	return reflect.DeepEqual(currExample, example)
+}
+
+func (w *wordScreen) getCurrEntry() (ld.DictEntry, bool) {
+	if w.currEntry < 0 || w.currEntry >= len(w.page.Entries) {
+		return ld.DictEntry{}, false
+	}
+
+	return w.page.Entries[w.currEntry], true
+}
+
+func (w *wordScreen) getCurrSense() (ld.LdSense, bool) {
+	currEntry, ok := w.getCurrEntry()
+	if !ok {
+		return nil, false
+	}
+
+	if w.currSense < 0 || w.currSense >= len(currEntry.Senses) {
+		return nil, false
+	}
+
+	return currEntry.Senses[w.currSense], true
 }
 
 func (w wordScreen) View() string {
 	builder := &strings.Builder{}
 
-	for _, e := range w.page.Entries {
-		builder.WriteString("\n")
-		w.renderEtrie(builder, e)
+	switch w.state {
+	case selectingSense:
+		for _, e := range w.page.Entries {
+			builder.WriteString("\n")
+			w.renderEntry(builder, e)
+		}
+	case selectingExample:
+		w.renderExampleSelection(builder)
 	}
 
 	return builder.String()
 }
 
-func (w wordScreen) renderEtrie(builder *strings.Builder, entry ld.DictEntry) {
+func (w wordScreen) renderEntry(builder *strings.Builder, entry ld.DictEntry) {
+	w.renderEntryHeader(builder, entry)
+
+	for i, s := range entry.Senses {
+		builder.WriteString("  ")
+		if len(entry.Senses) > 1 {
+			builder.WriteString(fmt.Sprintf("%d. ", i+1))
+		}
+		switch s := s.(type) {
+		case ld.Sense:
+			w.renderSense(builder, s)
+		case ld.CrossRefSense:
+			w.renderCrossRefSense(builder, s)
+		}
+	}
+}
+
+func (w wordScreen) renderEntryHeader(builder *strings.Builder, entry ld.DictEntry) {
 	if entry.Hyphenation != "" {
 		builder.WriteString(hyphenationStyle.Render(entry.Hyphenation))
 		builder.WriteString(" ")
@@ -147,23 +262,14 @@ func (w wordScreen) renderEtrie(builder *strings.Builder, entry ld.DictEntry) {
 	}
 
 	builder.WriteString("\n")
-
-	for i, s := range entry.Senses {
-		isSelected := w.isSeleceted(s)
-		builder.WriteString("  ")
-		if len(entry.Senses) > 1 {
-			builder.WriteString(fmt.Sprintf("%d. ", i+1))
-		}
-		switch s := s.(type) {
-		case ld.Sense:
-			renderSense(builder, s, isSelected)
-		case ld.CrossRefSense:
-			renderCrossRefSense(builder, s, isSelected)
-		}
-	}
 }
 
-func renderSense(builder *strings.Builder, sense ld.Sense, isSeleceted bool) {
+func (w wordScreen) renderSense(builder *strings.Builder, sense ld.Sense) {
+	w.renderSenseHeader(builder, sense)
+	w.renderSenseExamples(builder, sense)
+}
+
+func (w wordScreen) renderSenseHeader(builder *strings.Builder, sense ld.Sense) {
 	if sense.Grammar != "" {
 		builder.WriteString("[")
 		builder.WriteString(grammarStyle.Render(sense.Grammar))
@@ -171,13 +277,15 @@ func renderSense(builder *strings.Builder, sense ld.Sense, isSeleceted bool) {
 	}
 
 	defStyle := senseDefinitionStyle
-	if isSeleceted {
+	if w.isSelecetedSense(sense) {
 		defStyle = senseDefinitionStyle.Foreground(lipgloss.Color("4"))
 	}
 	builder.WriteString(defStyle.Render(sense.Definition))
 
 	builder.WriteString("\n")
+}
 
+func (w wordScreen) renderSenseExamples(builder *strings.Builder, sense ld.Sense) {
 	lastColloquial := ""
 	for _, e := range sense.Examples {
 		builder.WriteString("    ")
@@ -188,17 +296,46 @@ func renderSense(builder *strings.Builder, sense ld.Sense, isSeleceted bool) {
 			builder.WriteString("\n    ")
 		}
 
-		builder.WriteString("- \"")
-		builder.WriteString(exampleTextStyle.Render(e.Text))
-		builder.WriteString("\"\n")
+		style := exampleTextStyle
+		if w.isSelecetedExample(sense, e) {
+			style = exampleTextStyle.Foreground(lipgloss.Color("4"))
+		}
+
+		builder.WriteString("- ")
+		builder.WriteString(style.Render("\""))
+		builder.WriteString(style.Render(e.Text))
+		builder.WriteString(style.Render("\""))
+		builder.WriteString("\n")
 	}
 }
 
-func renderCrossRefSense(builder *strings.Builder, sense ld.CrossRefSense, isSelecetd bool) {
+func (w wordScreen) renderCrossRefSense(builder *strings.Builder, sense ld.CrossRefSense) {
 	style := crossRefStyle
-	if isSelecetd {
+	if w.isSelecetedSense(sense) {
 		style = crossRefStyle.Foreground(lipgloss.Color("4"))
 	}
 	builder.WriteString(style.Render("->", sense.Text))
 	builder.WriteString("\n")
+}
+
+func (w wordScreen) renderExampleSelection(builder *strings.Builder) {
+	entry, ok := w.getCurrEntry()
+	if !ok {
+		return
+	}
+
+	w.renderEntryHeader(builder, entry)
+
+	ldSense, ok := w.getCurrSense()
+	if !ok {
+		return
+	}
+
+	sense, ok := ldSense.(ld.Sense)
+	if !ok {
+		return
+	}
+
+	w.renderSenseHeader(builder, sense)
+	w.renderSenseExamples(builder, sense)
 }
