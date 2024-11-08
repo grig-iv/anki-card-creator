@@ -51,6 +51,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
+	case error:
+		log.Println(msg)
+		return m, nil
 	case pageMsg:
 		switch page := msg.(type) {
 		case ld.WordPage:
@@ -64,9 +67,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.screen.Init()
 			}
 		}
-	case error:
-		log.Println(msg)
-		return m, nil
 	}
 
 	m.screen, cmd = m.screen.Update(msg)
