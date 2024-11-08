@@ -1,4 +1,4 @@
-package ankiConnect
+package anki
 
 type CreateModelParams struct {
 	ModelName     string         `json:"modelName"`

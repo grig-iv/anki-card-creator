@@ -1,6 +1,6 @@
-package deck
+package creator
 
-import "github.com/grig-iv/anki-card-creator/ankiConnect"
+import "github.com/grig-iv/anki-card-creator/anki"
 
 const modelName = "LogmaDictionaryEng"
 
@@ -63,7 +63,7 @@ const sentenceTemplateBack = `
 `
 
 func CreateModel() error {
-	return ankiConnect.CreateModel(ankiConnect.CreateModelParams{
+	return anki.CreateModel(anki.CreateModelParams{
 		ModelName: "LogmaDictionaryEng",
 		Css:       modelCss,
 		InOrderFields: []string{
@@ -82,7 +82,7 @@ func CreateModel() error {
 			"exappleAudioUrl",
 		},
 		IsCloze: false,
-		CardTemplates: []ankiConnect.CardTemplate{
+		CardTemplates: []anki.CardTemplate{
 			{
 				Name:  "Sentence",
 				Front: sentenceTemplateFront,

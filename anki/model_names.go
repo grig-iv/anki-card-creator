@@ -1,4 +1,4 @@
-package ankiConnect
+package anki
 
 import "encoding/json"
 

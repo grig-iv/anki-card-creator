@@ -4,7 +4,7 @@ import (
 	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/grig-iv/anki-card-creator/ankiConnect"
+	"github.com/grig-iv/anki-card-creator/anki"
 )
 
 type startupScreen struct {
@@ -23,7 +23,7 @@ type openSearchMsg struct{}
 
 func (s startupScreen) Init() tea.Cmd {
 	return func() tea.Msg {
-		isRunning, err := ankiConnect.IsRunning()
+		isRunning, err := anki.IsRunning()
 
 		if err != nil {
 			return askOpenAnkiMsg{}
