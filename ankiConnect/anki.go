@@ -15,8 +15,19 @@ type Request struct {
 }
 
 type Response struct {
-	Result interface{} `json:"result"`
-	Error  string      `json:"error"`
+	Result string `json:"result"`
+	Error  string `json:"error"`
+}
+
+func (r Response) HasError() bool {
+	return r.Error != ""
+}
+
+func (r Response) ToError() error {
+	if r.HasError() {
+		return errors.New(r.Error)
+	}
+	return nil
 }
 
 func IsRunning() (bool, error) {
