@@ -19,7 +19,9 @@ type searchScreen struct {
 	suggestionList list.Model
 }
 
-type pageMsg ld.Page
+type pageMsg struct {
+	page ld.Page
+}
 
 type suggestionItem string
 
@@ -138,7 +140,7 @@ func (s searchScreen) updateSuggestions(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (s searchScreen) updateLoading(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case pageMsg:
-		switch page := msg.(type) {
+		switch page := msg.page.(type) {
 		case ld.SearchPage:
 			items := make([]list.Item, 0, len(page.Results))
 			for _, r := range page.Results {
@@ -184,6 +186,6 @@ func search(text string) tea.Cmd {
 			return err
 		}
 
-		return pageMsg(page)
+		return pageMsg{page}
 	}
 }

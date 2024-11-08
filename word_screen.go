@@ -93,7 +93,7 @@ func (w wordScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return w, nil
 		}
 	case pageMsg:
-		switch page := msg.(type) {
+		switch page := msg.page.(type) {
 		case ld.WordPage:
 			w.page = page
 			return w, nil

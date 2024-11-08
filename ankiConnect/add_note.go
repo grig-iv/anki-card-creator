@@ -1,4 +1,4 @@
-package anki
+package ankiConnect
 
 type addNoteParams struct {
 	DeckName  string            `json:"deckName"`

@@ -34,7 +34,7 @@ func main() {
 
 func newModel() model {
 	return model{
-		screen: newSearchScreen(),
+		screen: startupScreen{},
 	}
 }
 
@@ -44,8 +44,12 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	log.Println(msg)
 
 	switch msg := msg.(type) {
+	case openSearchMsg:
+		m.screen = newSearchScreen()
+		return m, m.screen.Init()
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
@@ -55,7 +59,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Println(msg)
 		return m, nil
 	case pageMsg:
-		switch page := msg.(type) {
+		switch page := msg.page.(type) {
 		case ld.WordPage:
 			if _, ok := m.screen.(wordScreen); !ok {
 				m.screen = newWordScreen(page)

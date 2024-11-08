@@ -1,4 +1,4 @@
-package anki
+package ankiConnect
 
 import (
 	"bytes"
@@ -19,6 +19,11 @@ type Response struct {
 	Error  string      `json:"error"`
 }
 
+func IsRunning() (bool, error) {
+	_, err := SendRequest("version", nil)
+	return err == nil, err
+}
+
 func SendRequest(name string, params interface{}) (*Response, error) {
 	request := Request{
 		Action:  name,
@@ -31,7 +36,12 @@ func SendRequest(name string, params interface{}) (*Response, error) {
 		return nil, err
 	}
 
-	resp, err := http.Post("http://localhost:8765", "application/json", bytes.NewReader(requestStr))
+	resp, err := http.Post(
+		"http://localhost:8765",
+		"application/json",
+		bytes.NewReader(requestStr),
+	)
+
 	if err != nil {
 		return nil, err
 	}
