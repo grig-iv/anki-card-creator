@@ -1,13 +1,11 @@
 package creator
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"path"
@@ -15,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/grig-iv/anki-card-creator/anki"
-	"golang.org/x/net/proxy"
 )
 
 type Card struct {
@@ -32,25 +29,6 @@ type Card struct {
 	Synoyms         string `json:"synoyms"`
 	ExampleText     string `json:"example_text"`
 	ExampleAudioUrl string `json:"example_audio"`
-}
-
-var (
-	client *http.Client
-)
-
-func init() {
-	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:1080", nil, proxy.Direct)
-	if err != nil {
-		panic(err)
-	}
-
-	dialContext := func(ctx context.Context, network, address string) (net.Conn, error) {
-		return dialer.Dial(network, address)
-	}
-
-	transport := &http.Transport{DialContext: dialContext, DisableKeepAlives: true}
-
-	client = &http.Client{Transport: transport}
 }
 
 func CreateCard(card Card, tags []string) error {
@@ -93,7 +71,7 @@ func downloadAudio(url string) string {
 
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 
-	resp, err := client.Do(req)
+	resp, err := HttpClient.Do(req)
 	if err != nil {
 		log.Println(err)
 		return ""

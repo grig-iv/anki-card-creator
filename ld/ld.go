@@ -1,35 +1,17 @@
 package ld
 
 import (
-	"context"
 	"errors"
-	"net"
 	"net/http"
 
 	"github.com/antchfx/htmlquery"
-	"golang.org/x/net/proxy"
 )
 
 type Page interface{}
 
 var (
-	client *http.Client
+	HttpClient *http.Client = http.DefaultClient
 )
-
-func init() {
-	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:1080", nil, proxy.Direct)
-	if err != nil {
-		panic(err)
-	}
-
-	dialContext := func(ctx context.Context, network, address string) (net.Conn, error) {
-		return dialer.Dial(network, address)
-	}
-
-	transport := &http.Transport{DialContext: dialContext, DisableKeepAlives: true}
-
-	client = &http.Client{Transport: transport}
-}
 
 func loadPage(url string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", url, nil)
@@ -39,7 +21,7 @@ func loadPage(url string) (*http.Response, error) {
 
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 
-	return client.Do(req)
+	return HttpClient.Do(req)
 }
 
 func ParseUrl(url string) (Page, error) {

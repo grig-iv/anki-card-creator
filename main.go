@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
+	"net"
+	"net/http"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/grig-iv/anki-card-creator/creator"
+	"github.com/grig-iv/anki-card-creator/ld"
+	"golang.org/x/net/proxy"
 )
 
 const (
@@ -18,11 +24,29 @@ func main() {
 
 	}
 	defer f.Close()
-
 	os.Truncate(logPath, 0)
+
+	proxyClient := newHttpProxyClient()
+	ld.HttpClient = proxyClient
+	creator.HttpClient = proxyClient
 
 	p := tea.NewProgram(newModel())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func newHttpProxyClient() *http.Client {
+	dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:1080", nil, proxy.Direct)
+	if err != nil {
+		panic(err)
+	}
+
+	dialContext := func(ctx context.Context, network, address string) (net.Conn, error) {
+		return dialer.Dial(network, address)
+	}
+
+	transport := &http.Transport{DialContext: dialContext, DisableKeepAlives: true}
+
+	return &http.Client{Transport: transport}
 }
