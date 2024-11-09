@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/grig-iv/anki-card-creator/creator"
 	"github.com/grig-iv/anki-card-creator/ld"
 )
 
@@ -89,6 +90,10 @@ func (w wordScreen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				w.state = selectingExample
 				w.currExample = -1
 				w.nextExample()
+				return w, nil
+			}
+			if w.state == selectingExample && w.currExample != -1 {
+				return w, w.createCard()
 			}
 			return w, nil
 		}
@@ -211,6 +216,50 @@ func (w *wordScreen) getCurrSense() (ld.LdSense, bool) {
 	}
 
 	return currEntry.Senses[w.currSense], true
+}
+
+func (w wordScreen) createCard() tea.Cmd {
+	return func() tea.Msg {
+		entry, ok := w.getCurrEntry()
+		if !ok {
+			return nil
+		}
+
+		ldSense, ok := w.getCurrSense()
+		if !ok {
+			return nil
+		}
+
+		sense, ok := ldSense.(ld.Sense)
+		if !ok {
+			return nil
+		}
+
+		if w.currExample == -1 {
+			return nil
+		}
+		example := sense.Examples[w.currExample]
+
+		card := creator.Card{
+			Word:            w.page.Title,
+			Hyphenation:     entry.Hyphenation,
+			Pronunciation:   entry.Pronunciation,
+			PartOfSpeach:    entry.PartOfSpeach,
+			Grammar:         entry.Grammar,
+			WordAudioUrl:    entry.AmericanAudioUrl,
+			Signpost:        sense.Signpost,
+			SenseGrammar:    sense.Grammar,
+			Geo:             sense.Geo,
+			Definition:      sense.Definition,
+			Synoyms:         sense.Synonyms,
+			ExampleText:     example.Text,
+			ExampleAudioUrl: example.AudioUrl,
+		}
+
+		creator.CreateCard(card, []string{})
+
+		return tea.QuitMsg{}
+	}
 }
 
 func (w wordScreen) View() string {

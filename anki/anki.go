@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -15,8 +16,7 @@ type Request struct {
 }
 
 type Response struct {
-	Result string `json:"result"`
-	Error  string `json:"error"`
+	Error string `json:"error"`
 }
 
 func (r Response) HasError() bool {
@@ -31,46 +31,48 @@ func (r Response) ToError() error {
 }
 
 func IsRunning() (bool, error) {
-	_, err := SendRequest("version", nil)
+	err := SendRequest("version", nil)
 	return err == nil, err
 }
 
-func SendRequest(name string, params interface{}) (*Response, error) {
+func SendRequest(name string, params interface{}) error {
 	request := Request{
 		Action:  name,
 		Version: 6,
 		Params:  params,
 	}
 
-	requestStr, err := json.Marshal(request)
+	requestByte, err := json.MarshalIndent(request, "", "  ")
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	log.Printf("SendRequest: %s\n", requestByte)
 
 	resp, err := http.Post(
 		"http://localhost:8765",
 		"application/json",
-		bytes.NewReader(requestStr),
+		bytes.NewReader(requestByte),
 	)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	response := &Response{}
 	responseStr, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = json.Unmarshal([]byte(responseStr), response)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if response.Error != "" {
-		return nil, errors.New(response.Error)
+	if response.HasError() {
+		return response.ToError()
 	}
 
-	return response, nil
+	return nil
 }

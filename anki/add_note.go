@@ -1,6 +1,6 @@
 package anki
 
-type addNoteParams struct {
+type AddNoteParams struct {
 	DeckName  string            `json:"deckName"`
 	ModelName string            `json:"modelName"`
 	Fields    map[string]string `json:"fields"`
@@ -19,11 +19,22 @@ type Media struct {
 }
 
 type AddNoteOptions struct {
-	AllowDuplicate        bool   `json:"allowDuplicate"`
-	DuplicateScope        string `json:"duplicateScope"`
-	DuplicateScopeOptions struct {
-		DeckName       string `json:"deckName"`
-		CheckChildren  bool   `json:"checkChildren"`
-		CheckAllModels bool   `json:"checkAllModels"`
-	} `json:"duplicateScopeOptions"`
+	AllowDuplicate        bool                  `json:"allowDuplicate"`
+	DuplicateScope        string                `json:"duplicateScope"`
+	DuplicateScopeOptions DuplicateScopeOptions `json:"duplicateScopeOptions"`
+}
+
+type DuplicateScopeOptions struct {
+	DeckName       string `json:"deckName"`
+	CheckChildren  bool   `json:"checkChildren"`
+	CheckAllModels bool   `json:"checkAllModels"`
+}
+
+func AddNote(params AddNoteParams) error {
+	return SendRequest(
+		"addNote",
+		struct {
+			Note AddNoteParams `json:"note"`
+		}{params},
+	)
 }

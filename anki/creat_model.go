@@ -15,6 +15,5 @@ type CardTemplate struct {
 }
 
 func CreateModel(params CreateModelParams) error {
-	_, err := SendRequest("createModel", params)
-	return err
+	return SendRequest("createModel", params)
 }

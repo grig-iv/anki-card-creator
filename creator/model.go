@@ -2,7 +2,7 @@ package creator
 
 import "github.com/grig-iv/anki-card-creator/anki"
 
-const modelName = "LogmaDictionaryEng"
+const modelName = "AnkiCardCreator Basic"
 
 const modelCss = `
 <style>
@@ -25,9 +25,9 @@ const modelCss = `
 const sentenceTemplateFront = `
 <div>
     <h2>Example Sentence</h2>
-    <p>{{exampleText}}</p>
+    <p>{{example_text}}</p>
     
-    {{exappleAudioUrl}}
+    {{exapple_audio_url}}
 </div>
 `
 
@@ -35,20 +35,20 @@ const sentenceTemplateBack = `
 <div>
     <h2>{{word}}</h2>
     
-    {{wordAudioUrl}}
+    {{word_audio_url}}
     
     <p><strong>Hyphenation:</strong> {{hyphenation}}</p>
     <p><strong>Pronunciation:</strong> {{pronunciation}}</p>
-    <p><strong>Part of Speech:</strong> {{partOfSpeach}}</p>
+    <p><strong>Part of Speech:</strong> {{part_of_speach}}</p>
     <p><strong>Grammar:</strong> {{grammar}}</p>
     
     {{#signpost}}
         <p><strong>Signpost:</strong> {{signpost}}</p>
     {{/signpost}}
     
-    {{#senseGrammar}}
-        <p><strong>Sense Grammar:</strong> {{senseGrammar}}</p>
-    {{/senseGrammar}}
+    {{#sense_grammar}}
+        <p><strong>Sense Grammar:</strong> {{sense_grammar}}</p>
+    {{/sense_grammar}}
     
     {{#geo}}
         <p><strong>Geographical Information:</strong> {{geo}}</p>
@@ -64,24 +64,10 @@ const sentenceTemplateBack = `
 
 func CreateModel() error {
 	return anki.CreateModel(anki.CreateModelParams{
-		ModelName: "LogmaDictionaryEng",
-		Css:       modelCss,
-		InOrderFields: []string{
-			"word",
-			"hyphenation",
-			"pronunciation",
-			"partOfSpeach",
-			"grammar",
-			"wordAudioUrl",
-			"signpost",
-			"senseGrammar",
-			"geo",
-			"definition",
-			"synoyms",
-			"exampleText",
-			"exappleAudioUrl",
-		},
-		IsCloze: false,
+		ModelName:     modelName,
+		Css:           modelCss,
+		InOrderFields: cardFields(),
+		IsCloze:       false,
 		CardTemplates: []anki.CardTemplate{
 			{
 				Name:  "Sentence",

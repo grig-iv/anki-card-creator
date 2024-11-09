@@ -44,7 +44,6 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	log.Println(msg)
 
 	switch msg := msg.(type) {
 	case openSearchMsg:
