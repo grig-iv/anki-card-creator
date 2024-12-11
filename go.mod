@@ -3,6 +3,7 @@ module github.com/grig-iv/anki-card-creator
 go 1.22.6
 
 require (
+	github.com/alexflint/go-arg v1.5.1
 	github.com/antchfx/htmlquery v1.3.3
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.2
@@ -12,6 +13,7 @@ require (
 )
 
 require (
+	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/antchfx/xpath v1.3.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

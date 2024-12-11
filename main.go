@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/alexflint/go-arg"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/grig-iv/anki-card-creator/creator"
 	"github.com/grig-iv/anki-card-creator/ld"
@@ -17,11 +18,16 @@ const (
 	logPath = "log"
 )
 
+var args struct {
+	Search string `arg:"-s"`
+}
+
 func main() {
+	arg.MustParse(&args)
+
 	f, err := tea.LogToFile(logPath, "")
 	if err != nil {
 		log.Fatal(err)
-
 	}
 	defer f.Close()
 	os.Truncate(logPath, 0)
