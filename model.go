@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/grig-iv/anki-card-creator/ld"
 )
@@ -34,8 +32,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	case error:
-		log.Println(msg)
-		return m, nil
+		panic(msg)
 	case pageMsg:
 		switch page := msg.page.(type) {
 		case ld.WordPage:
